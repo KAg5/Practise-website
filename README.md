@@ -12,8 +12,6 @@ A secure user authentication and profile management web app running locally on W
 - **Member directory** — searchable list of all registered users with avatars
 - **Session management** — secure httpOnly cookies, 30-day sessions
 - **Rate limiting** — OTP endpoint limited to 10 requests/minute per IP
-- **CORS protection** — only requests from localhost are accepted by the API
-- **SQL injection prevention** — all database queries use PDO prepared statements
 
 ---
 
@@ -42,6 +40,8 @@ A secure user authentication and profile management web app running locally on W
 - **Timing-safe password comparison** — prevents timing attacks on login
 - **OTP rate limiting** — max 5 OTPs per email per hour
 - **OTP try limiting** — burns after 5 wrong attempts
+- **CORS protection** — only requests from localhost are accepted by the API
+- **SQL injection prevention** — all database queries use PDO prepared statements
 
 ---
 
