@@ -134,17 +134,3 @@ http://localhost
 ```
 
 ---
-
-## Important
-
-- Never commit `config.php` — add it to `.gitignore`
-- `config.php` contains your SMTP credentials and session secret
-- The `.gitignore` below is recommended
-
-```gitignore
-api/config.php
-*.db
-*.log
-uploads/
-sessions/
-```
