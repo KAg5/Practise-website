@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vault — Profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0b0a09;
+      --surface: #131210;
+      --card:    #1a1916;
+      --border:  #2e2c28;
+      --text:    #f0ece4;
+      --muted:   #7a7469;
+      --hint:    #4a4640;
+      --accent:  #c8523a;
+      --accent2: #e8a87c;
+      --success: #4caf7d;
+    }
+
+    html, body { min-height: 100%; }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* Grain */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: -50%;
+      width: 200%;
+      height: 200%;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.025;
+      animation: grain 0.5s steps(1) infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes grain {
+      0%,100%{transform:translate(0,0)}    10%{transform:translate(-2%,-3%)}
+      20%{transform:translate(3%,1%)}      30%{transform:translate(-1%,4%)}
+      40%{transform:translate(4%,-2%)}     50%{transform:translate(-3%,3%)}
+      60%{transform:translate(2%,-4%)}     70%{transform:translate(-4%,2%)}
+      80%{transform:translate(3%,-1%)}     90%{transform:translate(-2%,4%)}
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(11,10,9,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+    }
+
+    .nav-logo span { color: var(--accent); }
+
+    .nav-tabs {
+      display: flex;
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .nav-tab {
+      padding: 0.4rem 1.1rem;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.83rem;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.02em;
+    }
+
+    .nav-tab.active { background: var(--border); color: var(--text); }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar-nav {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-family: 'Playfair Display', serif;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .avatar-nav img { width: 100%; height: 100%; object-fit: cover; }
+
+    .btn-logout {
+      padding: 0.35rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.8rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-logout:hover { color: var(--text); border-color: var(--hint); }
+
+    /* ── MAIN ── */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 5rem;
+    }
+
+    .section { display: none; }
+    .section.active { display: block; animation: fadeUp 0.35s ease both; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── PROFILE HEADER ── */
+    .profile-hero {
+      display: flex;
+      align-items: flex-end;
+      gap: 1.75rem;
+      padding-bottom: 2rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Avatar upload zone ── */
+    .avatar-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .avatar-xl {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      color: var(--muted);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .avatar-xl img { width: 100%; height: 100%; object-fit: cover; }
+
+    .avatar-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(11,10,9,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      cursor: pointer;
+      font-size: 0.7rem;
+      color: #fff;
+      text-align: center;
+      gap: 4px;
+      flex-direction: column;
+    }
+
+    .avatar-wrap:hover .avatar-overlay { opacity: 1; }
+    .avatar-wrap:hover .avatar-xl { border-color: var(--accent); }
+
+    .avatar-overlay svg { width: 20px; height: 20px; }
+
+    #avatarFileInput { display: none; }
+
+    .profile-meta h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.9rem;
+      line-height: 1.15;
+    }
+
+    .profile-meta .email-line {
+      font-size: 0.87rem;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      margin-top: 8px;
+      letter-spacing: 0.03em;
+    }
+
+    .badge-otp   { background: rgba(200,82,58,0.15); color: var(--accent2); border: 1px solid rgba(200,82,58,0.25); }
+    .badge-email { background: rgba(76,175,125,0.1);  color: var(--success);  border: 1px solid rgba(76,175,125,0.2); }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 400;
+    }
+
+    .card-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* ── Form fields ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-grid .full { grid-column: 1 / -1; }
+
+    .field label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 7px;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      padding: 0.75rem 0.9rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.92rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200,82,58,0.1);
+    }
+
+    .field textarea { resize: vertical; min-height: 90px; }
+
+    .field-readonly {
+      padding: 0.75rem 0.9rem;
+      background: var(--surface);
+      border: 1px solid var(--hint);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      padding: 0.8rem 2rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s;
+      margin-top: 1rem;
+    }
+
+    .btn-primary:hover { background: #b8442c; transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── Messages ── */
+    .save-ok  { display:none; color: var(--success); font-size: 0.85rem; margin-top: 0.75rem; }
+    .save-err { display:none; color: var(--accent);  font-size: 0.85rem; margin-top: 0.75rem; }
+    .save-ok.show  { display: block; }
+    .save-err.show { display: block; }
+
+    /* ── Upload progress ── */
+    .upload-msg {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 6px;
+      display: none;
+    }
+
+    .upload-msg.show { display: block; }
+
+    /* ── DIRECTORY ── */
+    .dir-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.75rem;
+    }
+
+    .dir-top h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem;
+      font-weight: 400;
+    }
+
+    .search {
+      padding: 0.6rem 1rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.88rem;
+      color: var(--text);
+      outline: none;
+      width: 220px;
+      transition: border-color 0.2s;
+    }
+
+    .search:focus { border-color: var(--accent); }
+
+    .user-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+
+    .user-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      transition: all 0.18s;
+    }
+
+    .user-card:hover {
+      border-color: var(--hint);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    .uc-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .uc-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--muted);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .uc-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .uc-name { font-size: 0.92rem; font-weight: 500; }
+    .uc-role { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .uc-bio  { font-size: 0.8rem;  color: var(--muted); line-height: 1.5;
+               display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+    .uc-loc  { font-size: 0.75rem; color: var(--hint); margin-top: 8px; }
+
+    /* Skeleton */
+    .skel {
+      background: linear-gradient(90deg, var(--surface) 25%, var(--card) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 5px;
+    }
+
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    .empty { grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--muted); }
+
+    /* Full page loader */
+    .loader {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1rem;
+      z-index: 999;
+    }
+
+    .spin {
+      width: 36px; height: 36px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loader-txt { font-size: 0.85rem; color: var(--muted); }
+
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .full { grid-column: 1; }
+      nav { padding: 0 1rem; }
+      .nav-tabs { display: none; }
+      .profile-hero { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="loader" id="loader">
+  <div class="spin"></div>
+  <p class="loader-txt">Checking session…</p>
+</div>
+
+<nav>
+  <div class="nav-logo">Vault<span>.</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('profile')">My Profile</button>
+    <button class="nav-tab"        onclick="showSection('directory')">Directory</button>
+  </div>
+  <div class="nav-right">
+    <div class="avatar-nav" id="navAvatar">?</div>
+    <button class="btn-logout" onclick="logout()">Sign out</button>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ── PROFILE SECTION ── -->
+  <div class="section active" id="sectionProfile">
+
+    <div class="profile-hero">
+      <div class="avatar-wrap">
+        <div class="avatar-xl" id="avatarXl">?</div>
+        <div class="avatar-overlay" onclick="document.getElementById('avatarFileInput').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          Change photo
+        </div>
+        <input type="file" id="avatarFileInput" accept="image/*" onchange="previewAndUpload(event)">
+      </div>
+      <div class="profile-meta">
+        <h1 id="heroName">Loading…</h1>
+        <div class="email-line" id="heroEmail"></div>
+        <div id="heroBadge"></div>
+      </div>
+    </div>
+
+    <div id="uploadMsg" class="upload-msg"></div>
+
+    <!-- Account info (read-only) -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Account</span>
+        <span class="card-sub">From your sign-in</span>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Email</label>
+          <div class="field-readonly" id="roEmail">—</div>
+        </div>
+        <div class="field">
+          <label>Sign-in method</label>
+          <div class="field-readonly" id="roProvider">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Editable profile -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Profile details</span>
+        <span class="card-sub">Visible in directory</span>
+      </div>
+
+      <form id="profileForm" onsubmit="saveProfile(event)" enctype="multipart/form-data">
+        <input type="hidden" id="csrfField" name="_csrf" value="">
+
+        <div class="form-grid">
+          <div class="field">
+            <label>First name</label>
+            <input type="text" name="first_name" id="fFirstName" placeholder="Ada">
+          </div>
+          <div class="field">
+            <label>Last name</label>
+            <input type="text" name="last_name" id="fLastName" placeholder="Lovelace">
+          </div>
+          <div class="field">
+            <label>Job title</label>
+            <input type="text" name="job_title" id="fJobTitle" placeholder="Software Engineer">
+          </div>
+          <div class="field">
+            <label>Location</label>
+            <input type="text" name="location" id="fLocation" placeholder="Mumbai, India">
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input type="tel" name="phone" id="fPhone" placeholder="+91 98765 43210">
+          </div>
+          <div class="field">
+            <label>GitHub username</label>
+            <input type="text" name="github" id="fGithub" placeholder="octocat">
+          </div>
+          <div class="field">
+            <label>Website</label>
+            <input type="url" name="website" id="fWebsite" placeholder="https://yoursite.com">
+          </div>
+          <div class="field full">
+            <label>Bio</label>
+            <textarea name="bio" id="fBio" placeholder="A short description about yourself…"></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="saveBtn">Save changes</button>
+        <div class="save-ok"  id="saveOk">✓ Profile updated</div>
+        <div class="save-err" id="saveErr">Could not save. Please try again.</div>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- ── DIRECTORY SECTION ── -->
+  <div class="section" id="sectionDirectory">
+    <div class="dir-top">
+      <h2>Member <em style="font-style:italic;color:var(--accent2)">directory</em></h2>
+      <input type="text" class="search" id="searchInput" placeholder="Search members…" oninput="filterDir()">
+    </div>
+    <div class="user-grid" id="userGrid"></div>
+  </div>
+
+</main>
+
+<script>
+// ── Config & state ──────────────────────────────────────────
+const API = '/api';
+let csrfToken = '';
+let allUsers  = [];
+let currentUser = null;
+
+// ── Boot ────────────────────────────────────────────────────
+(async () => {
+  // Get CSRF token
+  const cr = await fetch(`${API}/csrf`);
+  csrfToken = (await cr.json()).token;
+  document.getElementById('csrfField').value = csrfToken;
+
+  // Auth check
+  const mr = await fetch(`${API}/me`, { credentials: 'include' });
+  if (mr.status === 401) { window.location.href = '/auth/'; return; }
+
+  const md = await mr.json();
+  currentUser = md.user;
+
+  // Load full profile
+  const pr = await fetch(`${API}/profile`, { credentials: 'include' });
+  const pd = await pr.json();
+
+  renderHeader(pd.user, pd.profile);
+  fillForm(pd.profile);
+
+  document.getElementById('loader').style.display = 'none';
+})();
+
+// ── Section nav ─────────────────────────────────────────────
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach((t,i) => {
+    t.classList.toggle('active', (name==='profile'&&i===0)||(name==='directory'&&i===1));
+  });
+  document.getElementById('section' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+  if (name === 'directory') loadDirectory();
+}
+
+// ── Render header ────────────────────────────────────────────
+function renderHeader(user, profile) {
+  const displayName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ')
+                   || user.name || user.email.split('@')[0];
+
+  document.title = `Vault — ${displayName}`;
+  document.getElementById('heroName').textContent = displayName;
+  document.getElementById('heroEmail').textContent = user.email;
+
+  // Nav avatar
+  setAvatarEl(document.getElementById('navAvatar'), user);
+  // Large avatar
+  setAvatarEl(document.getElementById('avatarXl'), user, true);
+
+  document.getElementById('roEmail').textContent    = user.email;
+  document.getElementById('roProvider').textContent = user.provider === 'google' ? 'Google OAuth' : 'Email / OTP';
+
+  document.getElementById('heroBadge').innerHTML = user.provider === 'google'
+    ? '<span class="badge badge-otp">● Google</span>'
+    : '<span class="badge badge-email">● OTP / Email</span>';
+}
+
+function setAvatarEl(el, user, large = false) {
+  if (user.picture) {
+    el.innerHTML = `<img src="${user.picture}?t=${Date.now()}" alt="Avatar" onerror="this.parentElement.textContent='${initials(user)}'">`;
+  } else {
+    el.textContent = initials(user);
+  }
+}
+
+function initials(user) {
+  const n = user.name || user.email || '';
+  return n.split(/[ @]/).map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
+}
+
+// ── Fill form from profile data ──────────────────────────────
+function fillForm(p) {
+  if (!p) return;
+  const map = {
+    fFirstName: 'first_name', fLastName: 'last_name',
+    fJobTitle:  'job_title',  fLocation: 'location',
+    fPhone:     'phone',      fGithub:   'github',
+    fWebsite:   'website',    fBio:      'bio',
+  };
+  for (const [id, key] of Object.entries(map)) {
+    const el = document.getElementById(id);
+    if (el) el.value = p[key] || '';
+  }
+}
+
+// ── Avatar preview + upload ──────────────────────────────────
+async function previewAndUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Instant preview
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('avatarXl').innerHTML  = `<img src="${ev.target.result}" alt="Preview">`;
+    document.getElementById('navAvatar').innerHTML = `<img src="${ev.target.result}" alt="Preview">`;
+  };
+  reader.readAsDataURL(file);
+
+  // Upload immediately as part of next form save
+  // Just store the file reference — form submit will handle it
+  showUploadMsg('Image selected — click "Save changes" to apply.');
+}
+
+function showUploadMsg(msg) {
+  const el = document.getElementById('uploadMsg');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+// ── Save profile (multipart) ─────────────────────────────────
+async function saveProfile(e) {
+  e.preventDefault();
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  document.getElementById('saveOk').classList.remove('show');
+  document.getElementById('saveErr').classList.remove('show');
+
+  // Build FormData from the form (includes avatar file if selected)
+  const formData = new FormData(document.getElementById('profileForm'));
+
+  // Make sure the avatar file is attached
+  const fileInput = document.getElementById('avatarFileInput');
+  if (fileInput.files[0]) {
+    formData.set('avatar', fileInput.files[0]);
+  }
+
+  try {
+    const r = await fetch(`${API}/profile`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+      // DO NOT set Content-Type — browser sets it with boundary for multipart
+    });
+    const d = await r.json();
+
+    if (d.success) {
+      document.getElementById('saveOk').classList.add('show');
+      // Update avatar if new picture URL returned
+      if (d.picture) {
+        const newPicUser = { ...currentUser, picture: d.picture };
+        setAvatarEl(document.getElementById('avatarXl'), newPicUser, true);
+        setAvatarEl(document.getElementById('navAvatar'), newPicUser);
+        currentUser.picture = d.picture;
+      }
+      // Refresh displayed name
+      const fn = document.getElementById('fFirstName').value.trim();
+      const ln = document.getElementById('fLastName').value.trim();
+      const display = [fn, ln].filter(Boolean).join(' ') || currentUser.email.split('@')[0];
+      document.getElementById('heroName').textContent = display;
+      fileInput.value = '';
+    } else {
+      document.getElementById('saveErr').textContent = d.error || 'Could not save.';
+      document.getElementById('saveErr').classList.add('show');
+    }
+  } catch(err) {
+    document.getElementById('saveErr').classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save changes';
+  }
+}
+
+// ── Directory ────────────────────────────────────────────────
+async function loadDirectory() {
+  const grid = document.getElementById('userGrid');
+  // Show skeletons
+  grid.innerHTML = Array(6).fill(`
+    <div class="user-card">
+      <div class="uc-top">
+        <div class="uc-avatar skel"></div>
+        <div style="flex:1">
+          <div class="skel" style="height:13px;width:65%;margin-bottom:7px"></div>
+          <div class="skel" style="height:11px;width:45%"></div>
+        </div>
+      </div>
+      <div class="skel" style="height:11px;width:100%;margin-bottom:6px"></div>
+      <div class="skel" style="height:11px;width:75%"></div>
+    </div>
+  `).join('');
+
+  try {
+    const r = await fetch(`${API}/users`, { credentials: 'include' });
+    const d = await r.json();
+    allUsers = d.users || [];
+    renderDir(allUsers);
+  } catch(e) {
+    grid.innerHTML = '<div class="empty">Could not load directory.</div>';
+  }
+}
+
+function renderDir(users) {
+  const grid = document.getElementById('userGrid');
+  if (!users.length) {
+    grid.innerHTML = '<div class="empty">No members yet.</div>';
+    return;
+  }
+  grid.innerHTML = users.map(u => {
+    const name = [u.first_name, u.last_name].filter(Boolean).join(' ') || u.name || u.email?.split('@')[0] || '?';
+    const ini  = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const avHtml = u.picture
+      ? `<img src="${u.picture}" alt="" onerror="this.parentElement.textContent='${ini}'">`
+      : ini;
+    return `
+      <div class="user-card">
+        <div class="uc-top">
+          <div class="uc-avatar">${avHtml}</div>
+          <div>
+            <div class="uc-name">${esc(name)}</div>
+            <div class="uc-role">${esc(u.job_title || '')}</div>
+          </div>
+        </div>
+        ${u.bio     ? `<div class="uc-bio">${esc(u.bio)}</div>` : ''}
+        ${u.location ? `<div class="uc-loc">📍 ${esc(u.location)}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function filterDir() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  renderDir(allUsers.filter(u => {
+    const name = [u.first_name, u.last_name, u.name].filter(Boolean).join(' ').toLowerCase();
+    return !q || name.includes(q)
+      || (u.job_title||'').toLowerCase().includes(q)
+      || (u.location||'').toLowerCase().includes(q);
+  }));
+}
+
+// ── Logout ───────────────────────────────────────────────────
+async function logout() {
+  await fetch(`${API}/auth/logout`, {
+    method: 'POST',
+    headers: { 'X-CSRF-Token': csrfToken },
+    credentials: 'include',
+  });
+  window.location.href = '/auth/';
+}
+
+// ── XSS escape ───────────────────────────────────────────────
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
