@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vault — Sign In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0b0a09;
+      --surface: #131210;
+      --card:    #1a1916;
+      --border:  #2e2c28;
+      --text:    #f0ece4;
+      --muted:   #7a7469;
+      --hint:    #4a4640;
+      --accent:  #c8523a;
+      --accent2: #e8a87c;
+      --success: #4caf7d;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Animated grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: -50%;
+      width: 200%;
+      height: 200%;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.035;
+      animation: grain 0.5s steps(1) infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes grain {
+      0%,100%{transform:translate(0,0)}  10%{transform:translate(-2%,-3%)}
+      20%{transform:translate(3%,1%)}    30%{transform:translate(-1%,4%)}
+      40%{transform:translate(4%,-2%)}   50%{transform:translate(-3%,3%)}
+      60%{transform:translate(2%,-4%)}   70%{transform:translate(-4%,2%)}
+      80%{transform:translate(3%,-1%)}   90%{transform:translate(-2%,4%)}
+    }
+
+    /* Glow blob */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(200,82,58,0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 460px;
+      padding: 2rem 1.5rem;
+    }
+
+    /* ── Logo ── */
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      letter-spacing: -0.01em;
+      margin-bottom: 2.5rem;
+      text-align: center;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .logo span { color: var(--accent); }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.25rem 2rem;
+      animation: fadeUp 0.5s 0.1s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Tab bar ── */
+    .tabs {
+      display: flex;
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 2rem;
+      gap: 2px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 0.55rem;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.02em;
+    }
+
+    .tab.active {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    /* ── Step headings ── */
+    .step-head { margin-bottom: 1.75rem; }
+
+    .step-head h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 400;
+      line-height: 1.2;
+    }
+
+    .step-head h2 em {
+      font-style: italic;
+      color: var(--accent2);
+    }
+
+    .step-head p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.6;
+    }
+
+    /* ── Form ── */
+    .field { margin-bottom: 1.1rem; }
+
+    .field label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 8px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.95rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200,82,58,0.12);
+    }
+
+    /* ── OTP input row ── */
+    .otp-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+
+    .otp-row input {
+      flex: 1;
+      text-align: center;
+      font-size: 1.5rem;
+      font-family: 'Playfair Display', serif;
+      padding: 0.9rem 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 48px;
+    }
+
+    .otp-row input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200,82,58,0.12);
+    }
+
+    .otp-row input.filled {
+      border-color: var(--accent2);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      width: 100%;
+      padding: 0.9rem;
+      border: none;
+      border-radius: 9px;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: #b8442c; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      margin-top: 0.6rem;
+    }
+
+    .btn-ghost:hover { color: var(--text); border-color: var(--hint); }
+
+    /* ── Messages ── */
+    .msg {
+      display: none;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      margin-bottom: 1.1rem;
+      line-height: 1.5;
+    }
+
+    .msg.show { display: block; }
+    .msg-error { background: rgba(200,82,58,0.12); border: 1px solid rgba(200,82,58,0.3); color: #f08060; }
+    .msg-info  { background: rgba(76,175,125,0.1);  border: 1px solid rgba(76,175,125,0.3);  color: #4caf7d; }
+
+    /* ── Dev OTP box ── */
+    .dev-box {
+      display: none;
+      background: rgba(232,168,124,0.1);
+      border: 1px dashed rgba(232,168,124,0.4);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      color: var(--accent2);
+    }
+
+    .dev-box.show { display: block; }
+    .dev-box strong { font-size: 1.4rem; letter-spacing: 0.2em; display: block; margin-top: 4px; }
+
+    /* ── Resend link ── */
+    .resend {
+      text-align: center;
+      font-size: 0.83rem;
+      color: var(--muted);
+      margin-top: 1rem;
+    }
+
+    .resend a {
+      color: var(--accent2);
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .resend a:hover { text-decoration: underline; }
+
+    /* ── Password toggle link ── */
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--accent2);
+      font-family: 'Jost', sans-serif;
+      font-size: 0.83rem;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.75rem;
+      color: var(--hint);
+      margin: 1.25rem 0;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--hint);
+      margin-top: 1.5rem;
+      animation: fadeUp 0.5s 0.2s ease both;
+    }
+
+    /* Spinner */
+    .spin {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="logo">Vault<span>.</span></div>
+
+  <div class="card">
+    <!-- Tab bar -->
+    <div class="tabs">
+      <button class="tab active" id="tabLogin"    onclick="setTab('login')">Sign In</button>
+      <button class="tab"        id="tabRegister" onclick="setTab('register')">Register</button>
+    </div>
+
+    <div id="msgError" class="msg msg-error"></div>
+    <div id="msgInfo"  class="msg msg-info"></div>
+    <div id="devBox"   class="dev-box">
+      ⚠ Dev mode — SMTP not configured. Your OTP:
+      <strong id="devOtp"></strong>
+    </div>
+
+    <!-- ── STEP: email entry ── -->
+    <div id="stepEmail">
+      <div class="step-head">
+        <h2 id="stepEmailTitle">Welcome <em>back.</em></h2>
+        <p id="stepEmailSub">Enter your email and we'll send a one-time code.</p>
+      </div>
+
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="email">
+      </div>
+
+      <button class="btn btn-primary" id="btnSendOtp" onclick="sendOtp()">Send OTP</button>
+
+      <div class="divider">or</div>
+
+      <button class="btn btn-ghost" onclick="showPasswordStep()">Sign in with password</button>
+    </div>
+
+    <!-- ── STEP: OTP entry ── -->
+    <div id="stepOtp" style="display:none">
+      <div class="step-head">
+        <h2>Check your <em>inbox.</em></h2>
+        <p id="otpSentTo">Enter the 6-digit code sent to your email.</p>
+      </div>
+
+      <div class="otp-row" id="otpRow">
+        <input type="text" inputmode="numeric" maxlength="1" id="o0" oninput="otpInput(0)" onkeydown="otpKey(event,0)">
+        <input type="text" inputmode="numeric" maxlength="1" id="o1" oninput="otpInput(1)" onkeydown="otpKey(event,1)">
+        <input type="text" inputmode="numeric" maxlength="1" id="o2" oninput="otpInput(2)" onkeydown="otpKey(event,2)">
+        <input type="text" inputmode="numeric" maxlength="1" id="o3" oninput="otpInput(3)" onkeydown="otpKey(event,3)">
+        <input type="text" inputmode="numeric" maxlength="1" id="o4" oninput="otpInput(4)" onkeydown="otpKey(event,4)">
+        <input type="text" inputmode="numeric" maxlength="1" id="o5" oninput="otpInput(5)" onkeydown="otpKey(event,5)">
+      </div>
+
+      <button class="btn btn-primary" id="btnVerifyOtp" onclick="verifyOtp()">Verify Code</button>
+      <button class="btn btn-ghost" onclick="backToEmail()">← Back</button>
+
+      <div class="resend">
+        Didn't get it? <a onclick="sendOtp(true)">Resend code</a>
+        &nbsp;·&nbsp; <span id="resendTimer"></span>
+      </div>
+    </div>
+
+    <!-- ── STEP: password (optional) ── -->
+    <div id="stepPassword" style="display:none">
+      <div class="step-head">
+        <h2>Sign in with <em>password.</em></h2>
+        <p>Use your password if you set one, or <button class="link-btn" onclick="showOtpStep()">get a code instead</button>.</p>
+      </div>
+
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" id="pwEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="pwPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+
+      <button class="btn btn-primary" id="btnLoginPw" onclick="loginPassword()">Sign In</button>
+      <button class="btn btn-ghost" onclick="backToEmail()">← Back</button>
+
+      <div class="resend" style="margin-top:1rem">
+        <a onclick="showForgotStep()">Forgot password?</a>
+      </div>
+    </div>
+
+    <!-- ── STEP: forgot / reset ── -->
+    <div id="stepForgot" style="display:none">
+      <div class="step-head">
+        <h2>Reset <em>password.</em></h2>
+        <p>We'll send a code to verify it's you, then you can set a new password.</p>
+      </div>
+
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" id="forgotEmail" placeholder="you@example.com">
+      </div>
+
+      <button class="btn btn-primary" onclick="sendResetOtp()">Send Reset Code</button>
+      <button class="btn btn-ghost" onclick="backToEmail()">← Back</button>
+    </div>
+
+    <!-- ── STEP: set new password ── -->
+    <div id="stepSetPassword" style="display:none">
+      <div class="step-head">
+        <h2>Set new <em>password.</em></h2>
+        <p>Choose a strong password of at least 8 characters.</p>
+      </div>
+
+      <div class="field">
+        <label>New password</label>
+        <input type="password" id="newPassword" placeholder="Min. 8 characters">
+      </div>
+      <div class="field">
+        <label>Confirm password</label>
+        <input type="password" id="confirmPassword" placeholder="Repeat password">
+      </div>
+
+      <button class="btn btn-primary" onclick="setNewPassword()">Set Password & Sign In</button>
+    </div>
+
+  </div><!-- end card -->
+
+  <p class="footer-note">Protected by OTP · Secured with httpOnly cookies · No trackers</p>
+</div>
+
+<script>
+// ─── State ─────────────────────────────────────────────────
+let csrfToken  = '';
+let currentEmail = '';
+let currentPurpose = 'login';
+let resetToken = '';
+let resendInterval = null;
+
+// ─── Boot ──────────────────────────────────────────────────
+(async () => {
+  // Fetch CSRF token first
+  const r = await fetch('/api/csrf');
+  const d = await r.json();
+  csrfToken = d.token;
+
+  // If already logged in, redirect
+  const me = await fetch('/api/me', { credentials: 'include' });
+  if (me.ok) window.location.href = '/app/profile.html';
+})();
+
+// ─── Tab switching ─────────────────────────────────────────
+function setTab(tab) {
+  document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+  currentPurpose = tab === 'register' ? 'register' : 'login';
+
+  document.getElementById('stepEmailTitle').textContent =
+    tab === 'register' ? 'Create account.' : 'Welcome back.';
+  document.getElementById('stepEmailTitle').innerHTML =
+    tab === 'register' ? 'Create <em>account.</em>' : 'Welcome <em>back.</em>';
+  document.getElementById('stepEmailSub').textContent =
+    tab === 'register'
+      ? 'Enter your email to get a verification code.'
+      : "Enter your email and we'll send a one-time code.";
+
+  showStep('stepEmail');
+  clearMessages();
+}
+
+// ─── Step navigation ───────────────────────────────────────
+function showStep(id) {
+  ['stepEmail','stepOtp','stepPassword','stepForgot','stepSetPassword'].forEach(s => {
+    document.getElementById(s).style.display = s === id ? '' : 'none';
+  });
+  clearMessages();
+}
+
+function backToEmail()    { showStep('stepEmail'); }
+function showPasswordStep(){ showStep('stepPassword'); }
+function showForgotStep()  { showStep('stepForgot'); }
+function showOtpStep()     { showStep('stepEmail'); }
+
+// ─── Messages ──────────────────────────────────────────────
+function showError(msg)  {
+  const el = document.getElementById('msgError');
+  el.textContent = msg; el.classList.add('show');
+  document.getElementById('msgInfo').classList.remove('show');
+}
+function showInfo(msg)   {
+  const el = document.getElementById('msgInfo');
+  el.textContent = msg; el.classList.add('show');
+  document.getElementById('msgError').classList.remove('show');
+}
+function clearMessages() {
+  document.getElementById('msgError').classList.remove('show');
+  document.getElementById('msgInfo').classList.remove('show');
+  document.getElementById('devBox').classList.remove('show');
+}
+
+// ─── API call helper ───────────────────────────────────────
+async function api(endpoint, data) {
+  const r = await fetch('/api' + endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+    credentials: 'include',
+    body: JSON.stringify(data),
+  });
+  return r.json();
+}
+
+// ─── Send OTP ──────────────────────────────────────────────
+async function sendOtp(isResend = false) {
+  clearMessages();
+  const email = document.getElementById('emailInput').value.trim();
+  if (!email) { showError('Please enter your email address.'); return; }
+
+  currentEmail = email;
+  const btn = document.getElementById('btnSendOtp');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Sending…';
+
+  const d = await api('/auth/send-otp', { email, purpose: currentPurpose });
+  btn.disabled = false;
+  btn.textContent = 'Send OTP';
+
+  if (!d.success) { showError(d.error); return; }
+
+  // Show dev OTP if SMTP not configured
+  if (d.dev_otp) {
+    document.getElementById('devOtp').textContent = d.dev_otp;
+    document.getElementById('devBox').classList.add('show');
+  }
+
+  document.getElementById('otpSentTo').textContent = `Code sent to ${email}. Check your inbox (and spam folder).`;
+  showStep('stepOtp');
+  document.getElementById('o0').focus();
+  startResendTimer();
+}
+
+// ─── OTP input keyboard handling ──────────────────────────
+function otpInput(i) {
+  const el = document.getElementById('o' + i);
+  const v  = el.value.replace(/\D/g, '');
+  el.value = v;
+  el.classList.toggle('filled', v !== '');
+
+  if (v && i < 5) document.getElementById('o' + (i + 1)).focus();
+
+  // Auto-verify when all 6 filled
+  const full = Array.from({length:6}, (_,j) => document.getElementById('o'+j).value).join('');
+  //if (full.length === 6) verifyOtp();
+}
+
+function otpKey(e, i) {
+  if (e.key === 'Backspace' && !document.getElementById('o'+i).value && i > 0) {
+    document.getElementById('o'+(i-1)).focus();
+    document.getElementById('o'+(i-1)).value = '';
+    document.getElementById('o'+(i-1)).classList.remove('filled');
+  }
+}
+
+// ─── Verify OTP ────────────────────────────────────────────
+async function verifyOtp() {
+  clearMessages();
+  const otp = Array.from({length:6}, (_,i) => document.getElementById('o'+i).value).join('');
+  if (otp.length < 6) { showError('Please enter all 6 digits.'); return; }
+
+  const btn = document.getElementById('btnVerifyOtp');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Verifying…';
+
+  const d = await api('/auth/verify-otp', { email: currentEmail, otp, purpose: currentPurpose });
+  btn.disabled = false;
+  btn.textContent = 'Verify Code';
+
+  if (!d.success) {
+    showError(d.error);
+    // Clear OTP boxes
+    Array.from({length:6}, (_,i) => {
+      document.getElementById('o'+i).value = '';
+      document.getElementById('o'+i).classList.remove('filled');
+    });
+    document.getElementById('o0').focus();
+    return;
+  }
+
+  if (d.redirect) window.location.href = d.redirect;
+  
+  if (currentPurpose === 'reset' && d.reset_token) {
+    resetToken = d.reset_token;
+    showStep('stepSetPassword');
+    return;
+  }
+}
+
+// ─── Password login ────────────────────────────────────────
+async function loginPassword() {
+  clearMessages();
+  const email    = document.getElementById('pwEmail').value.trim();
+  const password = document.getElementById('pwPassword').value;
+  if (!email || !password) { showError('Both fields are required.'); return; }
+
+  const btn = document.getElementById('btnLoginPw');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Signing in…';
+
+  const d = await api('/auth/login-password', { email, password });
+  btn.disabled = false;
+  btn.textContent = 'Sign In';
+
+  if (!d.success) { showError(d.error); return; }
+  if (d.redirect) window.location.href = d.redirect;
+}
+
+// ─── Forgot / reset ────────────────────────────────────────
+async function sendResetOtp() {
+  clearMessages();
+  const email = document.getElementById('forgotEmail').value.trim();
+  if (!email) { showError('Enter your email to reset password.'); return; }
+
+  currentEmail   = email;
+  currentPurpose = 'reset';
+  const d = await api('/auth/send-otp', { email, purpose: 'reset' });
+  if (!d.success) { showError(d.error); return; }
+  if (d.dev_otp) {
+    document.getElementById('devOtp').textContent = d.dev_otp;
+    document.getElementById('devBox').classList.add('show');
+  }
+  showStep('stepOtp');
+  document.getElementById('otpSentTo').textContent = `Reset code sent to ${email}.`;
+  startResendTimer();
+}
+
+
+async function setNewPassword() {
+  clearMessages();
+  const pw1 = document.getElementById('newPassword').value;
+  const pw2 = document.getElementById('confirmPassword').value;
+  if (pw1.length < 8)  { showError('Password must be at least 8 characters.'); return; }
+  if (pw1 !== pw2)     { showError('Passwords do not match.'); return; }
+
+  const d = await api('/auth/set-password', { password: pw1, reset_token: resetToken });
+  if (!d.success) { showError(d.error); return; }
+
+  showInfo('Password updated! Signing you in…');
+  setTimeout(() => {
+    // Now log in with new password
+    currentPurpose = 'login';
+    loginAfterReset(pw1);
+  }, 1000);
+}
+
+async function loginAfterReset(pw) {
+  const d = await api('/auth/login-password', { email: currentEmail, password: pw });
+  if (d.redirect) window.location.href = d.redirect;
+}
+
+// ─── Resend timer ──────────────────────────────────────────
+function startResendTimer() {
+  let secs = 60;
+  const el = document.getElementById('resendTimer');
+  clearInterval(resendInterval);
+  el.textContent = `Resend in ${secs}s`;
+  resendInterval = setInterval(() => {
+    secs--;
+    if (secs <= 0) { el.textContent = ''; clearInterval(resendInterval); }
+    else el.textContent = `Resend in ${secs}s`;
+  }, 1000);
+}
+</script>
+</body>
+</html>
